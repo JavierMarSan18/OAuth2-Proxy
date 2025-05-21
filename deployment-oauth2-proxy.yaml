@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+  namespace: app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      k8s-app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-proxy
+    spec:
+      containers:
+      - args:
+        - --provider=google                                        # <-- 
+        - --session-store-type=redis
+        - --redis-connection-url=redis://redis.app.svc.cluster.local:6379
+        - --cookie-csrf-per-request=false
+        - --cookie-secure=true #<---                           
+        - --cookie-httponly=true
+        - --cookie-samesite=lax
+        - --cookie-refresh=1h
+        - --cookie-expire=168h
+        - --cookie-domain=ingsofapp.duckdns.org #<---
+        - --whitelist-domain=ingsofapp.duckdns.org
+        - --oidc-issuer-url=https://securetoken.google.com/dbfirebase-75b07
+        - --email-domain=*
+        - --redirect-url=https://ingsofapp.duckdns.org/oauth2/callback
+        - --upstream=http://nginx-example-service.app.svc.cluster.local:8080 # <---
+        - --http-address=0.0.0.0:4180
+        - --skip-provider-button=true
+        - --ssl-insecure-skip-verify=true
+        #- --pass-access-token=true
+        #- --pass-authorization-header=true
+        - --pass-user-headers=true
+        #- --set-authorization-header=true
+        - --oidc-jwks-url=https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com  #<---
+        - --show-debug-on-error=true
+        - --set-xauthrequest=true
+        - --code-challenge-method=S256
+        - --standard-logging=true
+        - --auth-logging=true
+        - --request-logging=true
+        - --scope=openid profile email
+        - --backend-logout-url=https://ingsofapp.duckdns.org/oauth2/start #<---
+        - --standard-logging=true
+        - --request-logging=true
+        - --auth-logging=true
+        - --show-debug-on-error=true
+        #- --skip-csrf-check=true
+
+        env:
+        - name: OAUTH2_PROXY_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy
+              key: client-id
+        - name: OAUTH2_PROXY_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy
+              key: client-secret
+        - name: OAUTH2_PROXY_COOKIE_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: oauth2-proxy
+              key: cookie-secret
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest
+        imagePullPolicy: Always
+        name: oauth2-proxy
+        ports:
+        - containerPort: 4180
+          protocol: TCP

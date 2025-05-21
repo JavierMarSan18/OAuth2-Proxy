@@ -1,0 +1,32 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: external-oauth2-proxy
+  namespace: app
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/auth-url: "https://ingsofapp.duckdns.org/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://ingsofapp.duckdns.org/oauth2/start?rd=$escaped_request_uri"
+    nginx.ingress.kubernetes.io/auth-response-headers: "Authorization,X-Auth-Request-Email,X-Auth-Request-Redirect"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ingsofapp.duckdns.org
+      secretName: ingsofapp-tls
+  rules:
+    - host: ingsofapp.duckdns.org
+      http:
+        paths:
+          - path: /(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: nginx-example-service
+                port:
+                  number: 8080
