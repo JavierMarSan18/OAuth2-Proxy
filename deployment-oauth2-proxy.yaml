@@ -27,10 +27,10 @@ spec:
         - --cookie-refresh=1h
         - --cookie-expire=168h
         - --cookie-domain=ingsofapp.duckdns.org #<---
-        - --whitelist-domain=ingsofapp.duckdns.org
-        - --oidc-issuer-url=https://securetoken.google.com/dbfirebase-75b07
+        - --whitelist-domain=ingsofapp.duckdns.org #<---
+        - --oidc-issuer-url=https://securetoken.google.com/dbfirebase-75b07 #<--- dbfirebase-75b07 es el ID de mi proyecto de Firebase
         - --email-domain=*
-        - --redirect-url=https://ingsofapp.duckdns.org/oauth2/callback
+        - --redirect-url=https://ingsofapp.duckdns.org/oauth2/callback #<---
         - --upstream=http://nginx-example-service.app.svc.cluster.local:8080 # <---
         - --http-address=0.0.0.0:4180
         - --skip-provider-button=true
